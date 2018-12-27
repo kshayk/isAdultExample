@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Getting Started with ml5.js</title>
+    <!--<script src="https://unpkg.com/ml5@0.1.1/dist/ml5.min.js"></script>-->
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+    <div style="margin: 0 auto; width: 400px">
+        <form id="uploadForm">
+            <input type="file" id="imgfile" required accept="image/jpeg,image/png,image/gif">
+            <button type="submit">Upload</button>
+        </form>
+        <br>
+        <img src=""
+             crossorigin="anonymous" id="image" width="400">
+
+        <div style="padding-left: 150px">
+            <img src="assets/giphy.gif" id="loading" style="display: none" width="100" height="100">
+        </div>
+        <span id="statusMessage"></span>
+    </div>
+
+    <script src="js/isAdult.js"></script>
+    <script>
+        $("#uploadForm").on('submit', function (e) {
+            e.preventDefault();
+
+            $("#loading").show();
+            $("#statusMessage").html("");
+
+            function getBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+            }
+
+            var file = $("#imgfile").prop("files")[0];
+
+            getBase64(file).then(function(data) {
+                var img = $("#image");
+                img.attr('src', data);
+
+                checkAdultImage(document.getElementById('image')).then(function(response) {
+                    //handle successful response
+                    // console.log(response.status)
+                    $("#loading").hide();
+                    switch (response.status) {
+                        case 1:
+                            $("#statusMessage").html("<h1 style='color: limegreen'>This image is safe! (status 1)</h1>");
+                            break;
+                        case 2:
+                            $("#statusMessage").html("<h1 style='color: orange'>This image might contain an adult content (status 2)</h1>");
+                            break;
+                        case 3:
+                            $("#statusMessage").html("<h1 style='color: red'>This image contains adult content! (status 3)</h1>");
+                            break;
+                        default:
+                            $("#statusMessage").html("<h4 style='color: grey'>Could not detect image. Please check your image and try again</h4>");
+                    }
+                }).catch(function(e) {
+                    //handle message
+                    $("#loading").hide();
+                    console.error(e.message);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
